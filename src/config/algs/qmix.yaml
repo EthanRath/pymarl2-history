@@ -44,4 +44,10 @@ per_alpha: 0.6
 per_beta: 0.4
 return_priority: False
 
-name: "qmix_env=8_adam_td_lambda"
+name: "qmix_h"
+
+hist: True
+rnn_hiddeen_dim: 64
+
+name: "qmix2"
+track: True

@@ -43,6 +43,24 @@ class ParallelRunner:
 
         self.log_train_stats_t = -100000
 
+        self.hist = args.hist
+
+        if args.track:
+            run_name = f"{args.name}_{args.hist}_{args.env}"
+            import wandb#track on wandb
+            from torch.utils.tensorboard import SummaryWriter
+            wandb.init(
+                project=args.project_name,
+                entity=None,
+                sync_tensorboard=True,
+                config=vars(args),
+                name=run_name,
+                monitor_gym=True,
+                save_code=True,
+            )
+            self.writer = SummaryWriter(f"runs/{args.env}_{run_name}")
+            self.track=True
+
     def setup(self, scheme, groups, preprocess, mac):
         self.new_batch = partial(EpisodeBatch, scheme, groups, self.batch_size, self.episode_limit + 1,
                                  preprocess=preprocess, device=self.args.device)
@@ -73,12 +91,20 @@ class ParallelRunner:
             "avail_actions": [],
             "obs": []
         }
+        if self.hist:
+            hist = self.mac.hidden_states.detach().cpu()
+            hist = th.flatten(hist, start_dim=1).numpy()
         # Get the obs, state and avail_actions back
+        i = 0
         for parent_conn in self.parent_conns:
             data = parent_conn.recv()
-            pre_transition_data["state"].append(data["state"])
+            if self.hist:
+                pre_transition_data["state"].append(np.concatenate((data["state"], hist[i])))
+            else:
+                pre_transition_data["state"].append(data["state"])
             pre_transition_data["avail_actions"].append(data["avail_actions"])
             pre_transition_data["obs"].append(data["obs"])
+            i += 1
 
         self.batch.update(pre_transition_data, ts=0)
 
@@ -86,12 +112,13 @@ class ParallelRunner:
         self.env_steps_this_run = 0
 
     def run(self, test_mode=False):
+        self.mac.init_hidden(batch_size=self.batch_size)
         self.reset()
 
         all_terminated = False
         episode_returns = [0 for _ in range(self.batch_size)]
         episode_lengths = [0 for _ in range(self.batch_size)]
-        self.mac.init_hidden(batch_size=self.batch_size)
+        
         terminated = [False for _ in range(self.batch_size)]
         envs_not_terminated = [b_idx for b_idx, termed in enumerate(terminated) if not termed]
         final_env_infos = []  # may store extra stats like battle won. this is filled in ORDER OF TERMINATION
@@ -114,6 +141,9 @@ class ParallelRunner:
             }
             if save_probs:
                 actions_chosen["probs"] = probs.unsqueeze(1).to("cpu")
+            if self.hist:
+                hist = self.mac.hidden_states.detach().cpu()
+                hist = th.flatten(hist, start_dim=1).numpy()
             
             self.batch.update(actions_chosen, bs=envs_not_terminated, ts=self.t, mark_filled=False)
 
@@ -140,7 +170,7 @@ class ParallelRunner:
             pre_transition_data = {
                 "state": [],
                 "avail_actions": [],
-                "obs": []
+                "obs": [],
             }
 
             # Receive data back for each unterminated env
@@ -164,17 +194,24 @@ class ParallelRunner:
                     post_transition_data["terminated"].append((env_terminated,))
 
                     # Data for the next timestep needed to select an action
-                    pre_transition_data["state"].append(data["state"])
+                    if self.hist:
+                        pre_transition_data["state"].append(np.concatenate((data["state"], hist[idx])))
+                    else:
+                        pre_transition_data["state"].append(data["state"])
                     pre_transition_data["avail_actions"].append(data["avail_actions"])
                     pre_transition_data["obs"].append(data["obs"])
 
+            #print(post_transition_data)
+            #print(pre_transition_data)
             # Add post_transiton data into the batch
             self.batch.update(post_transition_data, bs=envs_not_terminated, ts=self.t, mark_filled=False)
 
             # Move onto the next timestep
             self.t += 1
 
+            #print(pre_transition_data)
             # Add the pre-transition data
+            #print(envs_not_terminated, self.t)
             self.batch.update(pre_transition_data, bs=envs_not_terminated, ts=self.t, mark_filled=True)
 
         if not test_mode:
@@ -212,6 +249,9 @@ class ParallelRunner:
         return self.batch
 
     def _log(self, returns, stats, prefix):
+
+        if self.track and "test" in prefix:
+            self.writer.add_scalar("charts/return",  np.mean(returns), self.t_env)
         self.logger.log_stat(prefix + "return_mean", np.mean(returns), self.t_env)
         self.logger.log_stat(prefix + "return_std", np.std(returns), self.t_env)
         returns.clear()

@@ -1,0 +1,26 @@
+# --- Defaults for 4x4 predator prey, 4 agent capture, walls ---
+
+env: "doors"
+
+env_args:
+    map_name: "doors"
+    n_agents: 4
+    mishear_prob: 0.1
+    comm_error: 0.1
+    rew_c: 10
+    pen_l: 0.05
+    episode_limit: 100
+
+    state_is_obs: False
+    state_obs_concat: False
+
+test_greedy: True
+test_nepisode: 16
+test_interval: 1000
+log_interval: 1000
+runner_log_interval: 1000
+learner_log_interval: 1000
+t_max: 205_000
+obs_agent_id: True # Include the agent's one_hot id in the observation
+obs_last_action: True # Include the agent's last action (one_hot) in the observation
+project_name: "doors"

@@ -13,6 +13,8 @@ class DMAQ_SI_Weight(nn.Module):
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
         self.state_dim = int(np.prod(args.state_shape))
+        if args.hist:
+            self.state_dim += args.rnn_hidden_dim*args.n_agents
         self.action_dim = args.n_agents * self.n_actions
         self.state_action_dim = self.state_dim + self.action_dim
 

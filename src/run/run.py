@@ -104,6 +104,9 @@ def run_sequential(args, logger):
         "reward": {"vshape": (1,)},
         "terminated": {"vshape": (1,), "dtype": th.uint8},
     }
+    if args.hist:
+        #scheme["hist"]={"vshape": args.rnn_hidden_dim, "group": "agents"} 
+        scheme["state"]["vshape"] += args.rnn_hidden_dim*args.n_agents
     groups = {
         "agents": args.n_agents
     }

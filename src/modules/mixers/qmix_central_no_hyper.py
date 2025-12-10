@@ -12,6 +12,8 @@ class QMixerCentralFF(nn.Module):
 
         self.n_agents = args.n_agents
         self.state_dim = int(np.prod(args.state_shape))
+        if args.hist:
+            self.state_dim += args.rnn_hidden_dim*args.n_agents
 
         self.input_dim = self.n_agents * self.args.central_action_embed + self.state_dim
         self.embed_dim = args.central_mixing_embed_dim

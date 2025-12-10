@@ -16,7 +16,7 @@ env_args:
     capture_action_conditions: [2, 1]  # number of agents that have to simultaneously execute "catch" action
     capture_freezes: True   # whether capturing any prey freezes the participating agents (True) or not (False)
     capture_terminal: False # whether capturing any prey ends the episode
-    directed_observations: False   # Agents observe square around them (False) or a cone in the direction of the last action (True).
+    directed_observations: True   # Agents observe square around them (False) or a cone in the direction of the last action (True).
     directed_cone_narrow: True     # Whether the diagonal is excluded from the directed_observation cone (True)
     directed_exta_actions: True    # Whether the observation cone is controlled by movement (False) or actions (True)
     episode_limit: 200      # maximum number of time steps per episode
@@ -50,6 +50,8 @@ env_args:
     state_as_graph: False   # whether the state is a list of entities (True) or the entire grid (False
     toroidal: False         # whether the world is bounded (False) or toroidal (True)
     world_shape: [10, 10]   # the shape of the grid-world [height, width]
+    state_is_obs: False
+    state_obs_concat: False
 
 test_greedy: True
 test_nepisode: 16
@@ -57,5 +59,6 @@ test_interval: 10000
 log_interval: 10000
 runner_log_interval: 10000
 learner_log_interval: 10000
-t_max: 2050000
+t_max: 5_000_500
 obs_agent_id: False
+project_name: "Predator Prey"

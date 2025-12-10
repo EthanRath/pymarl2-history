@@ -57,6 +57,8 @@ class StagHunt(MultiAgentEnv):
         if isinstance(args, dict):
             args = convert(args)
         self.args = args
+        self.state_is_obs = args.state_is_obs
+        self.state_obs_concat = args.state_obs_concat
         self.print_caught_prey = getattr(args, "print_caught_prey", False)
         self.print_frozen_agents = getattr(args, "print_frozen_agents", False)
 
@@ -123,6 +125,7 @@ class StagHunt(MultiAgentEnv):
         self.n_stags = args.n_stags
         self.p_stags_rest = args.p_stags_rest
         self.n_hare = args.n_hare
+        print(f"*** n_agent: {self.n_agents}, n_stag: {self.n_stags}, n_hare: {self.n_hare} ***")
         self.p_hare_rest = args.p_hare_rest
         self.n_prey = self.n_stags + self.n_hare
         self.agent_obs = args.agent_obs
@@ -396,6 +399,21 @@ class StagHunt(MultiAgentEnv):
         # Either return the state as a list of entities...
         if self.state_as_graph:
             return self.state_to_graph(self.get_state_as_graph())
+        if self.state_is_obs:
+            obs_concat = np.concatenate(self.get_obs(), axis=0).astype(
+                np.float32
+            )
+            return obs_concat
+        if self.state_obs_concat:
+            if self.batch_mode:
+                s = self.grid.copy().reshape(self.state_size)
+            else:
+                s = self.grid[0, :, :, :].reshape(self.state_size)
+            obs_concat = np.concatenate(self.get_obs(), axis=0).astype(
+                np.float32
+            )
+            obs_concat = np.concatenate((s, obs_concat), axis=0).astype(np.float32)
+            return obs_concat
         # ... or return the entire grid
         if self.batch_mode:
             return self.grid.copy().reshape(self.state_size)
@@ -452,6 +470,10 @@ class StagHunt(MultiAgentEnv):
         return self.obs_size
 
     def get_state_size(self):
+        if self.state_is_obs:
+            return self.get_obs_size()*self.n_stags
+        if self.state_obs_concat:
+            return self.state_size + (self.get_obs_size()*self.n_stags)
         return self.state_size
 
     def get_stats(self):

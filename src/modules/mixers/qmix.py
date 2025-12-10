@@ -11,6 +11,8 @@ class QMixer(nn.Module):
         self.args = args
         self.n_agents = args.n_agents
         self.state_dim = int(np.prod(args.state_shape))
+        if args.hist:
+            self.state_dim += args.rnn_hidden_dim*args.n_agents
 
         self.embed_dim = args.mixing_embed_dim
         self.abs = getattr(self.args, 'abs', True)

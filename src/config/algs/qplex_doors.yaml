@@ -3,29 +3,28 @@
 
 # use epsilon greedy action selector
 action_selector: "epsilon_greedy"
-epsilon_start: 1.0
-epsilon_finish: 0.05
-epsilon_anneal_time: 100000
+epsilon_start: 0.5
+epsilon_finish: 0.01
+epsilon_anneal_time: 100_000
 
 runner: "parallel"
 batch_size_run: 8
-buffer_size: 5000
-batch_size: 128
+buffer_size: 1000
+batch_size: 8
 
 # update the target network every {} episodes
 target_update_interval: 200
-#t_max: 5_005_000
-t_max: 200_000 #10050000
+t_max: 10_050_000
 
 # use the Q_Learner to train
 agent_output_type: "q"
 learner: "dmaq_qatten_learner"
 double_q: True
 mixer: "dmaq"
-mixing_embed_dim: 32
-hypernet_embed: 64
+mixing_embed_dim: 8
+hypernet_embed: 16
 adv_hypernet_layers: 2
-adv_hypernet_embed: 64
+adv_hypernet_embed: 16
 td_lambda: 0.6
 lr: 0.001
 
@@ -35,8 +34,4 @@ weighted_head: True
 is_adv_attention: True
 is_stop_gradient: True
 
-hist: True
-rnn_hidden_dim: 64
-
-name: "qplex-64"
-track: True
+name: "qplex"

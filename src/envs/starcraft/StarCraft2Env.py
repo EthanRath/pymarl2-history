@@ -94,6 +94,7 @@ class StarCraft2Env(MultiAgentEnv):
         heuristic_ai=False,
         heuristic_rest=False,
         debug=False,
+        state_obs_concat= False
     ):
         """
         Create a StarCraftC2Env environment.
@@ -205,6 +206,7 @@ class StarCraft2Env(MultiAgentEnv):
         self.obs_own_health = obs_own_health
         self.obs_all_health = obs_all_health
         self.obs_instead_of_state = obs_instead_of_state
+        print(f"****** OBS INSTEAD OF STATE: {obs_instead_of_state} ******")
         self.obs_last_action = obs_last_action
         self.obs_pathing_grid = obs_pathing_grid
         self.obs_terrain_height = obs_terrain_height
@@ -236,6 +238,7 @@ class StarCraft2Env(MultiAgentEnv):
         self.window_size = (window_size_x, window_size_y)
         self.replay_dir = replay_dir
         self.replay_prefix = replay_prefix
+        self.state_obs_concat = state_obs_concat
 
         # Actions
         self.n_actions_no_attack = 6
@@ -1113,6 +1116,12 @@ class StarCraft2Env(MultiAgentEnv):
             if self.state_last_action:
                 logging.debug("Last actions {}".format(self.last_action))
 
+        if self.state_obs_concat:
+            obs_concat = np.concatenate(self.get_obs(), axis=0).astype(
+                    np.float32
+                )
+            obs_concat = np.concatenate((state, obs_concat), axis=0).astype(np.float32)
+            return obs_concat
         return state
 
     def get_obs_enemy_feats_size(self):
@@ -1192,6 +1201,8 @@ class StarCraft2Env(MultiAgentEnv):
         if self.state_timestep_number:
             size += 1
 
+        if self.state_obs_concat:
+            return (self.get_obs_size() * self.n_agents) + size
         return size
 
     def get_visibility_matrix(self):

@@ -15,6 +15,8 @@ class DMAQ_qattenLearner:
         self.mac = mac
         self.logger = logger
 
+        print(mac)
+
         self.params = list(mac.parameters())
 
         self.last_target_update_episode = 0
@@ -29,6 +31,7 @@ class DMAQ_qattenLearner:
             self.target_mixer = copy.deepcopy(self.mixer)
 
         self.optimiser = Adam(params=self.params, lr=args.lr)
+        self.hist = args.hist
 
         print('Mixer Size: ')
         print(get_parameters_num(self.mixer.parameters()))
@@ -43,6 +46,7 @@ class DMAQ_qattenLearner:
     def sub_train(self, batch: EpisodeBatch, t_env: int, episode_num: int, mac, mixer, optimiser, params,
                   show_demo=False, save_data=None):
         # Get the relevant quantities
+
         rewards = batch["reward"][:, :-1]
         actions = batch["actions"][:, :-1]
         terminated = batch["terminated"][:, :-1].float()
@@ -174,7 +178,7 @@ class DMAQ_qattenLearner:
         self.target_mac.load_state(self.mac)
         if self.mixer is not None:
             self.target_mixer.load_state_dict(self.mixer.state_dict())
-        self.logger.console_logger.info("Updated target network")
+        #self.logger.console_logger.info("Updated target network")
 
     def cuda(self):
         self.mac.cuda()

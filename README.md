@@ -1,3 +1,19 @@
+# PyMARL2 With History
+
+Modifies PyMARL2 to include history information in the mixing networks of QMix and QPLEX. To change whether history is used simply set the parameter "hist" to true or false in the appropriate algorithm yaml file e.g. src/config/algs/qmix.yaml
+
+**Example run QMix on the tiger door environment**
+
+python3 src/main.py --config=qmix_doors --env-config=doors with env_args.map_name=doors
+
+**Example run QPLEX on the tiger door environment**
+
+python3 src/main.py --config=qplex --env-config=doors with env_args.map_name=doors
+
+
+Aside from the additional "hist" parameter I've also added a "track" parameter that determines if test return values are logged with weights and biases. This can probably also be configured to log other data, but you would have to further modify the parallel_runner file.
+
+
 ```diff
 - If you want high sample efficiency, please use qmix_high_sample_efficiency.yaml
 - which uses 4 processes for training, slower but higher sample efficiency.
