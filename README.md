@@ -14,6 +14,8 @@ python3 src/main.py --config=qplex --env-config=doors with env_args.map_name=doo
 Aside from the additional "hist" parameter I've also added a "track" parameter that determines if test return values are logged with weights and biases. This can probably also be configured to log other data, but you would have to further modify the parallel_runner file.
 
 
+**EVERTHING AFTER THIS IS FROM THE PYMARL2 GITHUB AND WAS NOT WRITTEN BY ME**
+
 ```diff
 - If you want high sample efficiency, please use qmix_high_sample_efficiency.yaml
 - which uses 4 processes for training, slower but higher sample efficiency.
